@@ -1,5 +1,4 @@
 import { View, ScrollView, Alert, StyleSheet, KeyboardAvoidingView, Keyboard, TouchableWithoutFeedback, Text, Modal, TextInput, TouchableOpacity } from "react-native";
-import { globalStyles } from "../../styles/globalStyles";
 import Button from "../../components/Button";
 import { useContext, useRef, useState, useEffect } from "react";
 import DescriptionInput from "../../components/DescriptionInput";
@@ -9,13 +8,12 @@ import CategoryPicker from "../../components/CategoryPicker";
 import { MoneyContext } from "../../contexts/GlobalState";
 import { router } from "expo-router";
 import { colors } from "../../constants/colors";
-import { api } from "../../services/api"; 
 
 const initialForm = {
   description: "",
   value: 0,
   date: new Date(),
-  category: "cat-income", 
+  category: "", 
 };
 
 export default function AddTransactions() {
@@ -25,16 +23,16 @@ export default function AddTransactions() {
   const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
 
-  const [
+  // CORREÇÃO: Utilizando objeto {}
+  const {
     transactions, 
     setTransactions, 
-    , , , 
     updateTransaction, 
     editingTransaction, 
     setEditingTransaction,
     categories,
     addCategory
-  ] = useContext(MoneyContext);
+  } = useContext(MoneyContext);
 
   useEffect(() => {
     if (editingTransaction) {
@@ -42,7 +40,7 @@ export default function AddTransactions() {
         description: editingTransaction.description,
         value: editingTransaction.value,
         date: new Date(editingTransaction.date),
-        category: editingTransaction.category?.id || "cat-income", // Puxamos o ID
+        category: editingTransaction.categoryId || editingTransaction.category?.id || "",
       });
     }
   }, [editingTransaction]);
@@ -53,7 +51,6 @@ export default function AddTransactions() {
       setEditingTransaction(null);
       setForm({ ...initialForm, date: new Date() });
       router.replace('/'); 
-      
     } else {
       try {
         const transactionData = {
@@ -64,7 +61,6 @@ export default function AddTransactions() {
         };
 
         const savedTransaction = await api.createTransaction(transactionData);
-
         setTransactions([...transactions, savedTransaction]); 
         setForm({ ...initialForm, date: new Date() }); 
 
@@ -81,14 +77,11 @@ export default function AddTransactions() {
       Alert.alert("Erro", "O nome da categoria não pode estar vazio.");
       return;
     }
-
     const newCategory = {
       name: newCategoryName.trim().toLowerCase().replace(/\s+/g, '-'),
       displayName: newCategoryName.trim(),
     };
-
     await addCategory(newCategory); 
-    
     setNewCategoryName(""); 
     setIsCategoryModalVisible(false);
     Alert.alert("Sucesso!", "Categoria criada na base de dados!");
@@ -122,7 +115,6 @@ export default function AddTransactions() {
             <Button onPress={handleSave}>
               {editingTransaction ? "Salvar Alterações" : "Adicionar"}
             </Button>
-
           </ScrollView>
 
           {isCategoryModalVisible && (

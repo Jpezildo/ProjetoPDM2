@@ -1,7 +1,6 @@
 import { useContext, useMemo } from "react";
 import { MoneyContext } from "../../contexts/GlobalState";
 import { categories } from "../../constants/categories";
-import { globalStyles } from "../../styles/globalStyles";
 import SummaryItem from "../../components/SummaryItem";
 import MonthFilter from "../../components/MonthFilter";
 import { StyleSheet, Text, View, ScrollView, Dimensions } from "react-native"; 
@@ -31,8 +30,10 @@ export default function Summary() {
       travel: 0,
     };
 
-    for (let i = 0; i < transactions.length; i++) {
-      const item = transactions[i];
+    const safeTransactions = transactions || [];
+
+    for (let i = 0; i < safeTransactions.length; i++) {
+      const item = safeTransactions[i];
       
       const transactionDate = new Date(item.date);
       const isSameMonth = transactionDate.getMonth() === filterDate.getMonth();
@@ -55,8 +56,9 @@ export default function Summary() {
 
   const totals = useMemo(getTotals, [transactions, filterDate]);
 
+  // CORREÇÃO: Mudamos globalStyles.positiveText para styles.positiveText
   const valueStyle =
-    totals.sum > 0 ? globalStyles.positiveText : globalStyles.negativeText;
+    totals.sum > 0 ? styles.positiveText : styles.negativeText;
 
   const chartData = {
     labels: [
@@ -80,18 +82,19 @@ export default function Summary() {
   };
 
   const chartConfig = {
-    backgroundColor: colors.background,
-    backgroundGradientFrom: colors.background,
-    backgroundGradientTo: colors.background,
+    backgroundColor: colors?.background || '#F5F5F5',
+    backgroundGradientFrom: colors?.background || '#F5F5F5',
+    backgroundGradientTo: colors?.background || '#F5F5F5',
     decimalPlaces: 0, 
     color: (opacity = 1) => `rgba(55, 191, 129, ${opacity})`, 
-    labelColor: (opacity = 1) => colors.primaryText,
+    labelColor: (opacity = 1) => colors?.primaryText || '#000',
     barPercentage: 0.7, 
   };
 
   return (
-    <ScrollView style={globalStyles.screenContainer}>
-      <View style={globalStyles.content}>
+    // CORREÇÃO: Mudamos globalStyles.screenContainer para styles.screenContainer
+    <ScrollView style={styles.screenContainer}>
+      <View style={styles.content}>
         
         <MonthFilter />
 
@@ -129,7 +132,8 @@ export default function Summary() {
           value={totals[categories.travel.name]}
         />
 
-        <View style={globalStyles.line} />
+        {/* CORREÇÃO: Mudamos globalStyles.line para styles.line */}
+        <View style={styles.line} />
 
         <View style={styles.balance}>
           <Text style={styles.balanceText}>Saldo</Text>
@@ -145,7 +149,13 @@ export default function Summary() {
   );
 }
 
+// CORREÇÃO: Todos os estilos em falta foram trazidos para aqui!
 const styles = StyleSheet.create({
+  screenContainer: { flex: 1, backgroundColor: colors?.background || '#F5F5F5' },
+  content: { flex: 1, padding: 20 },
+  positiveText: { fontSize: 18, fontWeight: 'bold', color: '#34C759' },
+  negativeText: { fontSize: 18, fontWeight: 'bold', color: '#FF3B30' },
+  line: { height: 1, backgroundColor: colors?.secondaryText || '#C6C6C8', opacity: 0.3, marginVertical: 20 },
   balance: {
     display: "flex",
     flexDirection: "row",
@@ -154,7 +164,7 @@ const styles = StyleSheet.create({
   },
   balanceText: {
     fontSize: 18,
-    color: colors.primaryText,
+    color: colors?.primaryText || '#000',
     fontWeight: "800",
   },
   chartContainer: {
